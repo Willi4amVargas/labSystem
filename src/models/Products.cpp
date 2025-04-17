@@ -10,6 +10,7 @@ Products::Products(/*int code,*/ str name, str description)
     // this->code = code;
     this->name = name;
     this->description = description;
+    this->stock = 0;
 
     Products::cantProducts += 1;
 }
@@ -37,4 +38,14 @@ void Products::updateProduct(str name, str description)
 {
     this->name = name;
     this->description = description;
+}
+
+void Products::updateStock(int stock)
+{
+    this->stock += stock;
+}
+
+int Products::getStock()
+{
+    return this->stock;
 }

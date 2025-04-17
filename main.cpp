@@ -10,6 +10,7 @@ Laboratory *lab;
 void mainMenu();
 void productsMenu();
 void patiensMenu();
+void inventoryMenu();
 
 int main()
 {
@@ -22,10 +23,11 @@ void mainMenu()
     bool exit = false;
     str exitText = "\n\x1b[38;5;136m0. Salir del programa\nOtro. Continuar al menu\n\x1b[38;5;52mopcion: \x1b[0m";
 
-    str options[4] = {
+    str options[5] = {
         "Ver Datos del laboratorio",
         "Operaciones con productos",
         "Operaciones con los pacientes",
+        "Operaciones de inventario",
         "Salir"};
     int optionsLen = sizeof(options) / sizeof(str);
     int selectedOption;
@@ -76,23 +78,14 @@ void mainMenu()
                 break;
             case 1:
                 productsMenu();
-                // cout << exitText;
-                // cin >> goBack;
-                // if (goBack == 0)
-                // {
-                //     exit = true;
-                // }
                 break;
             case 2:
                 patiensMenu();
-                // cout << exitText;
-                // cin >> goBack;
-                // if (goBack == 0)
-                // {
-                //     exit = true;
-                // }
                 break;
             case 3:
+                inventoryMenu();
+                break;
+            case 4:
                 exit = true;
                 break;
             }
@@ -245,6 +238,62 @@ void patiensMenu()
                 }
                 break;
             case 4:
+                exit = true;
+                break;
+            }
+        }
+    } while (!exit);
+}
+
+void inventoryMenu()
+{
+    bool exit = false;
+    str exitText = "\n\x1b[38;5;136m0. Salir al menu principal\nOtro. Continuar al menu de inventario\n\x1b[38;5;52mopcion: \x1b[0m";
+    str options[3] = {
+        "Ver Operaciones de inventario del laboratorio",
+        "Crear Operacion de inventario para el laboratorio",
+        "Regresar"};
+    int optionsLen = sizeof(options) / sizeof(str);
+    int selectedOption;
+
+    do
+    {
+
+        cout << "\x1b[2J\x1b[0;0H\x1b[48;5;20m\nOperaciones de Inventario\x1b[0m\n\x1b[s";
+
+        cout << "\x1b[u";
+
+        for (int i = 0; i < optionsLen; i++)
+        {
+            cout << i << ". " << options[i] << "\x1b[0J\n";
+        }
+        cout << "\x1b[38;5;33mopcion: \x1b[0m";
+        cin >> selectedOption;
+
+        if (selectedOption <= optionsLen - 1)
+        {
+            int goBack;
+            switch (selectedOption)
+            {
+            case 0:
+                lab->getLabInventoryOperation();
+                cout << exitText;
+                cin >> goBack;
+                if (goBack == 0)
+                {
+                    exit = true;
+                }
+                break;
+            case 1:
+                lab->createLabInventoryOperation();
+                cout << exitText;
+                cin >> goBack;
+                if (goBack == 0)
+                {
+                    exit = true;
+                }
+                break;
+            case 2:
                 exit = true;
                 break;
             }

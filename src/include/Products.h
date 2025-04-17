@@ -10,6 +10,7 @@ private:
     // int code;
     str name;
     str description;
+    int stock;
 
 public:
     static int cantProducts;
@@ -18,5 +19,7 @@ public:
     // int getCode();
     str getName();
     str getDescription();
+    int getStock();
     void updateProduct(str name, str description);
+    void updateStock(int stock);
 };
