@@ -13,10 +13,10 @@ Products::Products(/*int code,*/ str name, str description)
 
     Products::cantProducts += 1;
 }
-Products::~Products()
-{
-    cout << "\x1b[0mProducto " << this->name /*<< " \nCodigo: " << this->code */ << "\nEliminado\n";
-}
+// Products::~Products()
+// {
+//     cout << "\x1b[0mProducto " << this->name /*<< " \nCodigo: " << this->code */ << "\nEliminado\n";
+// }
 
 // int Products::getCode()
 // {

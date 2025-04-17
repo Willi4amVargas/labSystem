@@ -14,7 +14,7 @@ private:
 public:
     static int cantProducts;
     Products(str name, str description);
-    ~Products();
+    // ~Products();
     // int getCode();
     str getName();
     str getDescription();
