@@ -21,4 +21,5 @@ public:
     void getLabProducts();
     void createProduct();
     void updateProduct();
+    void deleteProduct();
 };

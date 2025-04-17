@@ -7,15 +7,15 @@ typedef string str;
 class Products
 {
 private:
-    int code;
+    // int code;
     str name;
     str description;
 
 public:
     static int cantProducts;
-    Products(int code, str name, str description);
-    // ~Products();
-    int getCode();
+    Products(str name, str description);
+    ~Products();
+    // int getCode();
     str getName();
     str getDescription();
     void updateProduct(str name, str description);

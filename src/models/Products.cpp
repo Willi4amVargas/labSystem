@@ -5,23 +5,23 @@ using std::cout;
 
 int Products::cantProducts = 0;
 
-Products::Products(int code, str name, str description)
+Products::Products(/*int code,*/ str name, str description)
 {
-    this->code = code;
+    // this->code = code;
     this->name = name;
     this->description = description;
 
     Products::cantProducts += 1;
 }
-// Products::~Products()
-// {
-//     cout << "\x1b[0mProducto " << this->name << " \nCodigo: " << this->code << "\nEliminado\n";
-// }
-
-int Products::getCode()
+Products::~Products()
 {
-    return this->code;
+    cout << "\x1b[0mProducto " << this->name /*<< " \nCodigo: " << this->code */ << "\nEliminado\n";
 }
+
+// int Products::getCode()
+// {
+//     return this->code;
+// }
 
 str Products::getName()
 {

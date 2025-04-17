@@ -20,7 +20,7 @@ Laboratory::Laboratory(str labName, str labRif, str labPlace)
 
 Laboratory::~Laboratory()
 {
-    cout << "Laboratorio " << this->labName << " Eliminado";
+    cout << "\nLaboratorio " << this->labName << " Eliminado";
     delete labProducts;
 }
 
@@ -38,7 +38,7 @@ void Laboratory::getLabProducts()
     cout << "\x1b[u\x1b[0J\x1b[48;5;111mCODIGO\tNOMBRE\tDESCRIPCION\tTOTAL DE PRODUCTOS: " << Products::cantProducts << "\n\x1b[0m";
     for (int i = 0; i < productsSize; i++)
     {
-        cout << "\x1b[0J" << p[i].getCode() << "\t\t\t" << p[i].getName() << "\t\t\t" << p[i].getDescription() << "\n";
+        cout << "\x1b[0J" << i << "\t\t\t" << p[i].getName() << "\t\t\t" << p[i].getDescription() << "\n";
     }
 }
 
@@ -56,7 +56,7 @@ void Laboratory::createProduct()
     cout << "\x1b[0m\x1b[0JDESCRIPCION DEL PRODUCTO: \x1b[38;5;76m";
     getline(cin, description);
 
-    this->labProducts->emplace_back(code, name, description);
+    this->labProducts->emplace_back(name, description);
 
     cout << "\n\x1b[0J---Producto--- \n\x1b[0J\x1b[38;5;33mCODIGO: " << code
          << "\n\x1b[0JNOMBRE: " << name << "\t\t\t\x1b[48;5;76m\x1b[38;5;255mCREADO\x1b[0m\x1b[38;5;33m"
@@ -88,6 +88,27 @@ void Laboratory::updateProduct()
         getline(cin, newDescription);
 
         allProducts[codeToUpdate].updateProduct(newName, newDescription);
+    }
+    else
+    {
+        cout << "\n\x1b[38;5;52mNo hay productos registrados \x1b[0mε(´סּ︵סּ`)з\n";
+    }
+}
+
+void Laboratory::deleteProduct()
+{
+    if (this->labProducts->size() > 0)
+    {
+        int codeToDelete;
+        this->getLabProducts();
+        cout << "\n\x1b[0J\x1b[38;5;166mIngrese el codigo del producto a eliminar: \x1b[s\x1b[0m";
+        do
+        {
+            cout << "\x1b[u\x1b[0J";
+            cin >> codeToDelete;
+        } while (codeToDelete < 0 || codeToDelete >= this->labProducts->size());
+
+        this->labProducts->erase(this->labProducts->begin() + codeToDelete);
     }
     else
     {
