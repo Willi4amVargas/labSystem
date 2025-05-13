@@ -1,14 +1,20 @@
 #pragma once
 #include <iostream>
 #include <vector>
+#include <sqlite3.h>
 #include "include/Products.h"
 #include "include/Patients.h"
 #include "include/Inventory.h"
+#include "include/LabTests.h"
+#include <list>
+
+using std::vector;
 
 typedef std::string str;
-typedef std::vector<Products> arrayProducts;
-typedef std::vector<Patients> arrayPatients;
-typedef std::vector<Inventory> arrayInventory;
+typedef vector<Products> arrayProducts;
+typedef vector<Patients> arrayPatients;
+typedef vector<Inventory> arrayInventory;
+typedef vector<LabTest> arrayLabTest;
 
 class Laboratory
 {
@@ -19,9 +25,12 @@ private:
     arrayProducts *labProducts;
     arrayPatients *labPatients;
     arrayInventory *labInventoryOperations;
+    arrayLabTest *labTests;
+    int testNum;
 
 public:
-    Laboratory(str labName, str labRif, str labPlace);
+    sqlite3 *db;
+    Laboratory(str labName = "", str labRif = "", str labPlace = "");
     ~Laboratory();
     void getLabData();
 
@@ -41,4 +50,10 @@ public:
     // OPERACIONES DE INVENTARIO
     void getLabInventoryOperation();
     void createLabInventoryOperation();
+
+    // OPERACIONES CON LOS EXAMENES
+    void getLabTests();
+    void createLabTest();
+    void updateLabTest();
+    void deleteLabTest();
 };

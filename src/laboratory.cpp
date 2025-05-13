@@ -1,60 +1,132 @@
 #include <iostream>
+#include <sqlite3.h>
 #include "laboratory.h"
 #include "include/Products.h"
 #include "include/Patients.h"
 #include "include/Inventory.h"
+#include "include/LabTests.h"
+
 #include <limits>
+#include <iomanip>
 
 typedef std::string str;
 typedef std::vector<Products> arrayProducts;
 typedef std::vector<Patients> arrayPatients;
 typedef std::vector<Inventory> arrayInventory;
+typedef std::vector<LabTest> arrayLabTest;
 
 using std::cin;
 using std::cout;
 using std::endl;
 using std::getline;
+using std::left;
+using std::setw;
 using std::to_string;
 
 Laboratory::Laboratory(str labName, str labRif, str labPlace)
 {
-    this->labName = labName;
-    this->labRif = labRif;
-    this->labPlace = labPlace;
+    sqlite3_open("laboratory.db", &(this->db));
+    // CREO LA TABLA SI NO EXISTE
+    string createTable = "CREATE TABLE IF NOT EXISTS configs (id INTEGER PRIMARY KEY, name TEXT, rif TEXT, place TEXT);";
+    sqlite3_exec(this->db, createTable.c_str(), 0, 0, 0);
+
+    // COMBROBAR QUE YA NO EXISTA INFORMACION DE CONFIGURACION ANTES
+    string selectConfigData = "SELECT * FROM configs;";
+
+    sqlite3_exec(
+        this->db,
+        selectConfigData.c_str(),
+        [](void *data, int argc, char **argv, char **colnames) -> int
+        {
+            Laboratory *self = static_cast<Laboratory *>(data);
+            self->labName = argv[1];
+            self->labRif = argv[2];
+            self->labPlace = argv[3];
+
+            return 0;
+        },
+        this,
+        0);
+
+    if (this->labName == "")
+    {
+        cout << "\x1b[0J\x1b[38;5;20mNombre del laboratorio: \x1b[0m";
+        getline(cin, this->labName);
+        cout << "\x1b[0J\x1b[38;5;20mRIF del laboratorio: \x1b[0m";
+        getline(cin, this->labRif);
+        cout << "\x1b[0J\x1b[38;5;20mUbicacion del laboratorio: \x1b[0m";
+        getline(cin, this->labPlace);
+
+        string insertConfigData = "INSERT INTO configs (name, rif, place) VALUES ('" + this->labName + "', '" + this->labRif + "', '" + this->labPlace + "');";
+        sqlite3_exec(this->db, insertConfigData.c_str(), 0, 0, 0);
+    }
+
     this->labProducts = new arrayProducts();
     this->labPatients = new arrayPatients();
     this->labInventoryOperations = new arrayInventory();
+    this->labTests = new arrayLabTest();
 };
 
 Laboratory::~Laboratory()
 {
-    cout << "\nLaboratorio " << this->labName << " Eliminado";
+    sqlite3_close(this->db);
     delete labProducts;
 }
 
+/**
+ * Muestra los datos del laboratorio
+ */
 void Laboratory::getLabData()
 {
-    cout << "\x1b[u\x1b[0J\tNOMBRE\t\t\tRIF\n"
-         << "\x1b[0J\x1b[38;5;20m\t" << this->labName << "\t\t" << this->labRif << "\t\n"
-         << "\x1b[0J\t\x1b[0mDIRECCIÓN: \x1b[38;5;76m" << this->labPlace << "\x1b[0m" << endl;
+    string selectConfigData = "SELECT * FROM configs;";
+
+    cout << left << "\x1b[u\x1b[0J" << endl
+         << setw(20) << "NOMBRE" << setw(10) << "RIF" << setw(30) << "DIRECCION" << endl;
+
+    sqlite3_exec(
+        this->db,
+        selectConfigData.c_str(),
+        [](void *data, int argc, char **argv, char **colnames) -> int
+        {
+            Laboratory *self = static_cast<Laboratory *>(data);
+
+            self->labName = argv[1];
+            self->labRif = argv[2];
+            self->labPlace = argv[3];
+
+            cout << left << "\x1b[0J\x1b[38;5;20m" << setw(20) << self->labName << setw(10) << self->labRif << "\x1b[38;5;76m" << setw(30) << self->labPlace << "\x1b[0m" << endl;
+            return 0;
+        },
+        this,
+        0);
 }
 
+/**
+ * Muestra los productos del laboratorio
+ */
 void Laboratory::getLabProducts()
 {
-    int productsSize = this->labProducts->size();
-    arrayProducts &p = *(this->labProducts);
-    cout << "\x1b[u\x1b[0J\x1b[48;5;111mCODIGO\tNOMBRE\tDESCRIPCION\tSTOCK\tTOTAL DE PRODUCTOS: " << Products::cantProducts << "\n\x1b[0m";
-    for (int i = 0; i < productsSize; i++)
+
+    cout << "\x1b[u\x1b[0J\x1b[38;5;111m"
+         << left << setw(20) << "CODIGO" << setw(30) << "NOMBRE" << setw(30) << "DESCRIPCION" << setw(10) << "STOCK" << setw(30) << "TOTAL DE PRODUCTOS: " << Products::cantProducts << "\x1b[0m" << endl;
+    for (int i = 0; i < this->labProducts->size(); i++)
     {
-        cout << "\x1b[0J" << i << "\t\t\t" << p[i].getName() << "\t\t\t" << p[i].getDescription() << "\t" << p[i].getStock() << "\n";
+        Products p = this->labProducts->at(i);
+        cout << left << "\x1b[0J" << setw(20) << i << setw(30) << p.getName() << setw(30) << p.getDescription() << setw(10) << p.getStock() << endl;
     }
 }
 
+/**
+ * Obtiene la cantidad de productos existentes en la clase
+ */
 int Laboratory::getLabProductsSize()
 {
     return this->labProducts->size();
 }
 
+/**
+ * Crea un producto y lo inserta en la clase
+ */
 void Laboratory::createProduct()
 {
     str name, description;
@@ -62,19 +134,26 @@ void Laboratory::createProduct()
 
     std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 
-    cout << "\x1b[u\x1b[0m\x1b[0JNOMBRE DEL PRODUCTO: \x1b[38;5;76m";
+    cout << "\x1b[u\x1b[0J" << endl
+         << "\t\x1b[0mNOMBRE DEL PRODUCTO: \x1b[38;5;76m";
     getline(cin, name);
 
-    cout << "\x1b[0m\x1b[0JDESCRIPCION DEL PRODUCTO: \x1b[38;5;76m";
+    cout << "\x1b[u\x1b[0J" << endl
+         << "\tDESCRIPCION DEL PRODUCTO: \x1b[38;5;76m";
     getline(cin, description);
 
     this->labProducts->emplace_back(name, description);
 
-    cout << "\n\x1b[0J---Producto--- \n\x1b[0J\x1b[38;5;33mCODIGO: " << code
-         << "\n\x1b[0JNOMBRE: " << name << "\t\t\t\x1b[48;5;76m\x1b[38;5;255mCREADO\x1b[0m\x1b[38;5;33m"
-         << "\n\x1b[0JDESCRIPCION: " << description << "\t\x1b[0m\n";
+    cout << endl
+         << "\x1b[0J\x1b[0m" << setw(60) << "==============================Producto=============================="
+         << endl
+         << "\x1b[0J\x1b[38;5;33m" << setw(10) << "CODIGO: " << code << setw(20) << "NOMBRE: " << name << setw(30) << "DESCRIPCION: " << description << setw(10) << endl
+         << "\x1b[0m" << setw(60) << left << "CREADO\x1b[0m";
 }
 
+/**
+ * Actualiza un producto
+ */
 void Laboratory::updateProduct()
 {
     if (this->labProducts->size() > 0)
@@ -88,7 +167,7 @@ void Laboratory::updateProduct()
             cin >> codeToUpdate;
         } while (codeToUpdate < 0 || codeToUpdate >= this->labProducts->size());
 
-        arrayProducts &allProducts = *this->labProducts;
+        // arrayProducts &allProducts = *this->labProducts;
 
         std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 
@@ -99,7 +178,7 @@ void Laboratory::updateProduct()
         cout << "\n\x1b[0m\x1b[0JIngrese la nueva descripcion del producto: \x1b[38;5;33m";
         getline(cin, newDescription);
 
-        allProducts[codeToUpdate].updateProduct(newName, newDescription);
+        (*this->labProducts)[codeToUpdate].updateProduct(newName, newDescription);
     }
     else
     {
@@ -309,3 +388,114 @@ void Laboratory::createLabInventoryOperation()
         cout << "\x1b[u\x1b[0J\x1b[48;5;124mDEBE EXISTIR ALMENOS 1 PRODUCTO ANTES\x1b[0m";
     }
 }
+
+void Laboratory::getLabTests()
+{
+    int testsSize = this->labTests->size();
+    arrayLabTest &t = *(this->labTests);
+    cout << "\x1b[u\x1b[0J\x1b[48;5;111mCODIGO\tNOMBRE\tDESCRIPCION\tVALOR\tTOTAL DE TESTS: " << LabTest::cantLabTests << "\n\x1b[0m";
+    for (int i = 0; i < testsSize; i++)
+    {
+        t[i].getLabTests();
+    }
+}
+
+void Laboratory::createLabTest()
+{
+
+    if (this->labProducts->size() == 0)
+    {
+        cout << "\x1b[u\x1b[0J\x1b[38;5;124mDEBE EXISTIR ALMENOS 1 PRODUCTO ANTES\x1b[0m";
+        return;
+    }
+
+    str testName, testDescription, testValue;
+    float testPrice;
+    int rangeStart, rangeEnd, selectedProduct, productUsageAmount;
+    vector<pair<Products *, int>> usageProducts;
+    vector<pair<int, int>> testRanges;
+
+    cout << "\x1b[u\x1b[0J\x1b[48;5;20m\nCreacion del Examen\x1b[0m\n";
+
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+
+    cout << "\x1b[0JIngrese el nombre del examen: \x1b[38;5;33m";
+    getline(cin, testName);
+    cout << "\x1b[0m\x1b[0JIngrese la descripcion del examen: \x1b[38;5;33m";
+    getline(cin, testDescription);
+    cout << "\x1b[0m\x1b[0JIngrese el valor del examen (ejemplo\x1b[38;5;52m examen de sangre->Hgb\x1b[0m): \x1b[38;5;33m";
+    getline(cin, testValue);
+    cout << "\x1b[0m\x1b[0JIngrese el precio del examen: \x1b[38;5;33m";
+    cin >> testPrice;
+
+    cout << "\x1b[0m\x1b[48;5;20m\x1b[0JRangos Normales del examen\n\x1b[0m\x1b[s";
+    do
+    {
+        int addAnotherRange;
+
+        cout << "\x1b[u\x1b[0m\x1b[0JInicial de " << testValue << ": \x1b[38;5;33m";
+        cin >> rangeStart;
+        cout << "\x1b[0m\x1b[0JFinal de " << testValue << ": \x1b[38;5;33m";
+        cin >> rangeEnd;
+        testRanges.emplace_back(rangeStart, rangeEnd);
+
+        cout << "\x1b[0m\x1b[0J¿Desea agregar otro rango? (\x1b[38;5;52m0\x1b[0m/\x1b[38;5;40m1\x1b[0m):";
+        cin >> addAnotherRange;
+        if (addAnotherRange == 0)
+        {
+            break;
+        }
+    } while (true);
+
+    cout << "\n\x1b[0m\x1b[s";
+
+    this->getLabProducts();
+
+    cout << "\n\x1b[48;5;20m\x1b[0JProductos Usados en el examen de " << testValue << "\n\x1b[0m\x1b[s";
+    do
+    {
+        do
+        {
+            cout << "\x1b[u\x1b[0m\x1b[0JSeleccione el producto usado en el examen: \x1b[38;5;33m";
+            cin >> selectedProduct;
+        } while (selectedProduct < 0 || selectedProduct >= this->labProducts->size());
+
+        do
+        {
+            cout << "\x1b[u\x1b[0m\x1b[0JIngrese la cantidad de producto usado: \x1b[38;5;33m";
+            cin >> productUsageAmount;
+        } while (productUsageAmount < 0);
+
+        Products &operationProduct = (*this->labProducts)[selectedProduct];
+
+        usageProducts.emplace_back(&operationProduct, productUsageAmount);
+
+        if (usageProducts.size() == this->labProducts->size())
+        {
+            break;
+        }
+
+        int addProduct;
+
+        cout << "\x1b[0m\x1b[0J¿Desea agregar otro producto? (\x1b[38;5;52m0/\x1b[38;5;40m1\x1b[0m):";
+        cin >> addProduct;
+        if (addProduct == 0)
+        {
+            break;
+        }
+    } while (true);
+
+    this->labTests->emplace_back(testName, testDescription, testValue, testPrice, usageProducts, testRanges);
+    cout << "\n\x1b[0J---Examen--- \n\x1b[0J\x1b[38;5;33mNOMBRE: " << testName
+         << "\t\t\t\x1b[48;5;76mCREADO\x1b[0m";
+};
+
+void Laboratory::updateLabTest()
+{
+    cout << "AUN NO IMPLEMENTADO";
+};
+
+void Laboratory::deleteLabTest()
+{
+    cout << "AUN NO IMPLEMENTADO";
+};

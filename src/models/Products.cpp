@@ -13,6 +13,7 @@ Products::Products(/*int code,*/ str name, str description)
     this->stock = 0;
 
     Products::cantProducts += 1;
+    // cout << "PRODUCTO " << this->name << "\nCreado\n";
 }
 // Products::~Products()
 // {
