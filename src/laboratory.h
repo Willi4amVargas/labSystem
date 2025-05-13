@@ -11,10 +11,10 @@
 using std::vector;
 
 typedef std::string str;
-typedef vector<Products> arrayProducts;
+
 typedef vector<Patients> arrayPatients;
-typedef vector<Inventory> arrayInventory;
-typedef vector<LabTest> arrayLabTest;
+// typedef vector<Inventory> arrayInventory;
+// typedef vector<LabTest> arrayLabTest;
 
 class Laboratory
 {
@@ -22,24 +22,17 @@ private:
     str labName;
     str labRif;
     str labPlace;
-    arrayProducts *labProducts;
     arrayPatients *labPatients;
-    arrayInventory *labInventoryOperations;
-    arrayLabTest *labTests;
-    int testNum;
+    // arrayInventory *labInventoryOperations;
+    // arrayLabTest *labTests;
 
 public:
+    Products *labProducts;
+
     sqlite3 *db;
     Laboratory(str labName = "", str labRif = "", str labPlace = "");
     ~Laboratory();
     void getLabData();
-
-    // OPERACIONES CON PRODUCTOS
-    void getLabProducts();
-    int getLabProductsSize();
-    void createProduct();
-    void updateProduct();
-    void deleteProduct();
 
     // OPERACIONES CON PACIENTES
     void getLabPatients();
