@@ -2,19 +2,21 @@
 #include <iostream>
 #include <vector>
 #include <utility>
-#include "Products.h"
+#include "include/Products.h"
 
+using std::cin;
+using std::cout;
 using std::pair;
 using std::string;
 using std::vector;
-typedef string str;
+
 
 class LabTest
 {
 private:
-    str testName;
-    str testDescription;
-    str testValue;
+    string testName;
+    string testDescription;
+    string testValue;
     float testPrice;
     /**Productos usados en el examen
     Posicion 0 -> posicion en el arreglo de productos
@@ -29,7 +31,7 @@ private:
 
 public:
     static int cantLabTests;
-    LabTest(str testName, str testDescription, str testValue, float testPrice, vector<pair<Products*, int>> usageProducts, vector<pair<int, int>> testRanges);
+    LabTest(string testName, string testDescription, string testValue, float testPrice, vector<pair<Products*, int>> usageProducts, vector<pair<int, int>> testRanges);
     void getLabTests();
     void updateLabTest();
     void deleteLabTest();

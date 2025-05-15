@@ -1,19 +1,8 @@
-#include <iostream>
-#include <vector>
-#include <utility>
 #include "include/LabTests.h"
-#include "include/Products.h"
-
-using std::cin;
-using std::cout;
-using std::string;
-using std::vector;
-
-typedef string str;
 
 int LabTest::cantLabTests = 0;
 
-LabTest::LabTest(str testName, str testDescription, str testValue, float testPrice, vector<pair<Products *, int>> usageProducts, vector<pair<int, int>> testRanges)
+LabTest::LabTest(string testName, string testDescription, string testValue, float testPrice, vector<pair<Products *, int>> usageProducts, vector<pair<int, int>> testRanges)
 {
     this->testName = testName;
     this->testDescription = testDescription;

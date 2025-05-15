@@ -1,17 +1,4 @@
 #include "include/Products.h"
-#include <iostream>
-#include <sqlite3.h>
-#include <iomanip>
-#include <limits>
-#include <vector>
-
-using std::cin;
-using std::cout;
-using std::endl;
-using std::left;
-using std::setw;
-using std::to_string;
-using std::vector;
 
 int Products::cantProducts = 0;
 
@@ -108,7 +95,7 @@ Product Products::getProduct(int id)
  * @param description descripcion del producto
  * @return el id del producto creado
  */
-int Products::createProduct(str name, str description)
+int Products::createProduct(string name, string description)
 {
     string insertProduct = "INSERT INTO products (name, description, stock) VALUES ('" + name + "', '" + description + "', 0);";
     sqlite3_exec(this->db, insertProduct.c_str(), 0, 0, 0);
@@ -138,7 +125,7 @@ int Products::createProduct(str name, str description)
  * @param name nuevo nombre del producto
  * @param description nueva descripcion del producto
  */
-void Products::updateProduct(int id, str name, str description)
+void Products::updateProduct(int id, string name, string description)
 {
     string updateProduct = "UPDATE products SET name = '" + name + "', description = '" + description + "' WHERE id = " + to_string(id) + ";";
     sqlite3_exec(this->db, updateProduct.c_str(), 0, 0, 0);
@@ -176,15 +163,15 @@ void Products::updateStock(int id, int stock)
 void Products::menu()
 {
     bool exit = false;
-    str exitText = "\n\x1b[38;5;136m0. Salir al menu principal\nOtro. Continuar al menu de productos\n\x1b[38;5;52mopcion: \x1b[0m";
-    str options[6] = {
+    string exitText = "\n\x1b[38;5;136m0. Salir al menu principal\nOtro. Continuar al menu de productos\n\x1b[38;5;52mopcion: \x1b[0m";
+    string options[6] = {
         "Ver Productos del laboratorio",
         "Buscar Productos del laboratorio",
         "Crear Producto para el laboratorio",
         "Actualizar Producto del laboratorio",
         "Eliminar un Producto del laboratorio",
         "Regresar"};
-    int optionsLen = sizeof(options) / sizeof(str);
+    int optionsLen = sizeof(options) / sizeof(string);
     int selectedOption;
 
     do
@@ -315,7 +302,7 @@ void Products::getProductMenu()
  */
 void Products::createProductMenu()
 {
-    str name, description;
+    string name, description;
 
     std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 
@@ -361,7 +348,7 @@ void Products::updateProductMenu()
         return;
     }
 
-    str name, description;
+    string name, description;
 
     std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 

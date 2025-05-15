@@ -1,34 +1,11 @@
-#include <iostream>
-#include <sqlite3.h>
 #include "laboratory.h"
-#include "include/Products.h"
-#include "include/Patients.h"
-#include "include/Inventory.h"
-#include "include/LabTests.h"
-
-#include <limits>
-#include <iomanip>
-
-typedef std::string str;
-typedef std::vector<Products> arrayProducts;
-typedef std::vector<Patients> arrayPatients;
-typedef std::vector<Inventory> arrayInventory;
-typedef std::vector<LabTest> arrayLabTest;
-
-using std::cin;
-using std::cout;
-using std::endl;
-using std::getline;
-using std::left;
-using std::setw;
-using std::to_string;
 
 /**
     Constructor de la clase Laboratory
     Abre la base de datos y crea la tabla de configuracion si no existe
     Si ya existe, obtiene los datos de configuracion
 */
-Laboratory::Laboratory(str labName, str labRif, str labPlace)
+Laboratory::Laboratory(string labName, string labRif, string labPlace)
 {
     sqlite3_open("laboratory.db", &(this->db));
     // CREO LA TABLA SI NO EXISTE
@@ -67,8 +44,8 @@ Laboratory::Laboratory(str labName, str labRif, str labPlace)
     }
 
     this->labProducts = new Products(this->db);
-    this->labPatients = new arrayPatients();
-    // this->labInventoryOperations = new arrayInventory();
+    this->labPatients = new Patients(this->db);
+    this->labInventoryOperations = new Inventory(this->db, this->labProducts);
     // this->labTests = new arrayLabTest();
 };
 
@@ -78,8 +55,10 @@ Laboratory::Laboratory(str labName, str labRif, str labPlace)
  */
 Laboratory::~Laboratory()
 {
+    delete this->labProducts;
+    delete this->labPatients;
+    delete this->labInventoryOperations;
     sqlite3_close(this->db);
-    delete labProducts;
 }
 
 /**
@@ -110,188 +89,6 @@ void Laboratory::getLabData()
         0);
 }
 
-void Laboratory::getLabPatients()
-{
-    int patientsSize = this->labPatients->size();
-    arrayPatients &p = *(this->labPatients);
-    cout << "\x1b[u\x1b[0J\x1b[48;5;111mCODIGO\tNOMBRE\tCEDULA\tEMAIL\tTELEFONO\t\tTOTAL DE PACIENTES: " << Patients::cantPatients << "\n\x1b[0m";
-    for (int i = 0; i < patientsSize; i++)
-    {
-        cout << "\x1b[0J" << i << "\t" << p[i].getPatientFullName() << "\t" << p[i].getPatientCI() << "\t" << p[i].getPatientEmail() << "\t" << p[i].getPatientPhone() << "\n";
-    }
-}
-
-void Laboratory::createPatient()
-{
-    str fullName, ci, email, phone;
-    int code = this->labPatients->size();
-
-    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-
-    cout << "\x1b[u\x1b[0m\x1b[0JNOMBRE COMPLETO DEL PACIENTE: \x1b[38;5;76m";
-    getline(cin, fullName);
-
-    cout << "\x1b[0m\x1b[0JCEDULA DEL PACIENTE: \x1b[38;5;76m";
-    getline(cin, ci);
-
-    cout << "\x1b[0m\x1b[0JEMAIL DEL PACIENTE: \x1b[38;5;76m";
-    getline(cin, email);
-
-    cout << "\x1b[0m\x1b[0JTELEFONO DEL PACIENTE: \x1b[38;5;76m";
-    getline(cin, phone);
-
-    this->labPatients->emplace_back(fullName, ci, email, phone);
-
-    cout << "\n\x1b[0J---Paciente--- \n\x1b[0J\x1b[38;5;33mCODIGO: " << code
-         << "\n\x1b[0JNOMBRE: " << fullName << "\t\t\t\x1b[48;5;76m\x1b[38;5;255mCREADO\x1b[0m\x1b[38;5;33m"
-         << "\n\x1b[0JCEDULA: " << ci << "\t\x1b[0m\n";
-}
-
-void Laboratory::updatePatient()
-{
-    if (this->labPatients->size() > 0)
-    {
-        int codeToUpdate;
-        this->getLabPatients();
-        cout << "\n\x1b[0J\x1b[38;5;166mIngrese el codigo del paciente a cambiar: \x1b[s\x1b[0m";
-        do
-        {
-            cout << "\x1b[u\x1b[0J";
-            cin >> codeToUpdate;
-        } while (codeToUpdate < 0 || codeToUpdate >= this->labPatients->size());
-
-        arrayPatients &allPatients = *this->labPatients;
-
-        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-
-        str newFullName, newCi, newEmail, newPhone;
-        cout << "\n\x1b[0m\x1b[0JIngrese el nuevo nombre del paciente: \x1b[38;5;33m";
-        getline(cin, newFullName);
-
-        cout << "\n\x1b[0m\x1b[0JIngrese la nueva cedula del paciente: \x1b[38;5;33m";
-        getline(cin, newCi);
-
-        cout << "\n\x1b[0m\x1b[0JIngrese el nuevo email del paciente: \x1b[38;5;33m";
-        getline(cin, newEmail);
-
-        cout << "\n\x1b[0m\x1b[0JIngrese el nuevo telefono del paciente: \x1b[38;5;33m";
-        getline(cin, newPhone);
-
-        allPatients[codeToUpdate].updatePatient(newFullName, newCi, newEmail, newPhone);
-    }
-    else
-    {
-        cout << "\n\x1b[38;5;52mNo hay pacientes registrados \x1b[0mε(´סּ︵סּ`)з\n";
-    }
-}
-
-void Laboratory::deletePatient()
-{
-    if (this->labPatients->size() > 0)
-    {
-        int codeToDelete;
-        this->getLabPatients();
-        cout << "\n\x1b[0J\x1b[38;5;166mIngrese el codigo del paciente a eliminar: \x1b[s\x1b[0m";
-        do
-        {
-            cout << "\x1b[u\x1b[0J";
-            cin >> codeToDelete;
-        } while (codeToDelete < 0 || codeToDelete >= this->labPatients->size());
-
-        this->labPatients->erase(this->labPatients->begin() + codeToDelete);
-    }
-    else
-    {
-        cout << "\n\x1b[38;5;52mNo hay pacientes registrados \x1b[0mε(´סּ︵סּ`)з\n";
-    }
-}
-
-// void Laboratory::getLabInventoryOperation()
-// {
-//     int inventorySize = this->labInventoryOperations->size();
-//     arrayInventory &i = *(this->labInventoryOperations);
-
-//     cout << "\x1b[u\x1b[0J\x1b[48;5;111mCODIGO\tNOMBRE\tTIPO DE OPERACION\tSTOCK\n\x1b[0m";
-//     for (int a = 0; a < inventorySize; a++)
-//     {
-//         cout << "\x1b[0J" << i[a].getInventoryProductCode() << "\t" << i[a].getInventoryProductName() << "\t" << i[a].getInventoryOperationType() << "\t" << i[a].getInventoryProductStock() << "\n";
-//     }
-// }
-
-// void Laboratory::createLabInventoryOperation()
-// {
-//     int productsInLab = this->labProducts->size();
-//     if (productsInLab > 0)
-//     {
-//         int selectedProduct, selectedStock, operationType;
-
-//         cout << "\x1b[u\x1b[0J¿QUE OPERACION VA A REALIZAR?" << "\n\x1b[0J\x1b[38;5;33m0. CARGA DE INVENTARIO\x1b[0m" << "\n\x1b[0J\x1b[38;5;124m1. DESCARGA DE INVENTARIO\x1b[0m\n\x1b[s";
-//         do
-//         {
-//             cout << "\x1b[u\x1b[0J";
-//             cin >> operationType;
-//         } while (operationType < 0 || operationType > 1);
-
-//         cout << "\n";
-//         this->getLabProducts();
-
-//         cout << "Seleccione el codigo del producto: \x1b[s";
-//         do
-//         {
-//             cout << "\x1b[u\x1b[0J";
-//             cin >> selectedProduct;
-//         } while (selectedProduct < 0 || selectedProduct >= productsInLab);
-
-//         Products &operationProduct = (*this->labProducts)[selectedProduct];
-
-//         if (operationType == 1 && operationProduct.getStock() <= 0)
-//         {
-//             cout << "\x1b[48;5;160mNo puedes realizar una descarga a un producto sin stock\x1b[0m";
-//             return;
-//         }
-
-//         cout << "Ingrese el stock que va a " << (operationType == 0 ? "\x1b[38;5;33mcargar\x1b[0m: " : "\x1b[38;5;124mdescargar\x1b[0m: ");
-//         cin >> selectedStock;
-
-//         if (operationType == 1 && selectedStock < 0)
-//         {
-//             cout << "\x1b[48;5;160mNo puedes realizar una descarga de stock negativo\x1b[0m";
-//             return;
-//         }
-
-//         if (operationType == 1 && operationProduct.getStock() - selectedStock < 0)
-//         {
-//             cout << "\x1b[48;5;160mNo puedes descargar mas del stock total\x1b[0m";
-//             return;
-//         }
-
-//         str headerText = operationType == 0 ? "\n\x1b[0J\x1b[38;5;33m---OPERACION DE CARGA---\x1b[0m" : "\n\x1b[0J\x1b[38;5;124m---OPERACION DE DESCARGA---\x1b[0m";
-
-//         if (operationType == 1)
-//         {
-//             operationProduct.updateStock(-selectedStock);
-//             this->labInventoryOperations->emplace_back(to_string(selectedProduct), operationProduct.getName(), "DOWNLOAD", selectedStock);
-
-//             cout << headerText << "\n\x1b[0J\x1b[38;5;33mPRODUCTO CODIGO: " << selectedProduct
-//                  << "\n\x1b[0JNOMBRE: " << operationProduct.getName() << "\t\t\t\x1b[48;5;76m\x1b[38;5;255mCREADO\x1b[0m\x1b[38;5;33m"
-//                  << "\n\x1b[0JSTOCK: " << selectedStock << "\t\x1b[0m\n";
-//         }
-//         else if (operationType == 0)
-//         {
-//             operationProduct.updateStock(selectedStock);
-//             this->labInventoryOperations->emplace_back(to_string(selectedProduct), operationProduct.getName(), "LOAD", selectedStock);
-
-//             cout << headerText << "\n\x1b[0J\x1b[38;5;33mPRODUCTO CODIGO: " << selectedProduct
-//                  << "\n\x1b[0JNOMBRE: " << operationProduct.getName() << "\t\t\t\x1b[48;5;76m\x1b[38;5;255mCREADO\x1b[0m\x1b[38;5;33m"
-//                  << "\n\x1b[0JSTOCK: " << selectedStock << "\t\x1b[0m\n";
-//         }
-//     }
-//     else
-//     {
-//         cout << "\x1b[u\x1b[0J\x1b[48;5;124mDEBE EXISTIR ALMENOS 1 PRODUCTO ANTES\x1b[0m";
-//     }
-//}
-
 // void Laboratory::getLabTests()
 // {
 //     int testsSize = this->labTests->size();
@@ -312,7 +109,7 @@ void Laboratory::deletePatient()
 //         return;
 //     }
 
-//     str testName, testDescription, testValue;
+//     string testName, testDescription, testValue;
 //     float testPrice;
 //     int rangeStart, rangeEnd, selectedProduct, productUsageAmount;
 //     vector<pair<Products *, int>> usageProducts;

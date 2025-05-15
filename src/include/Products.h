@@ -2,16 +2,24 @@
 #include <iostream>
 #include <vector>
 #include <sqlite3.h>
+#include <iomanip>
+#include <limits>
+#include <vector>
 
+using std::cin;
+using std::cout;
+using std::endl;
+using std::left;
+using std::setw;
 using std::string;
+using std::to_string;
 using std::vector;
-typedef string str;
 
 struct Product
 {
     int id;
-    str name;
-    str description;
+    string name;
+    string description;
     int stock;
 };
 
@@ -22,8 +30,8 @@ private:
 
     // Database operations
     vector<Product> getProducts();
-    int createProduct(str name, str description);
-    void updateProduct(int id, str name, str description);
+    int createProduct(string name, string description);
+    void updateProduct(int id, string name, string description);
     void deleteProduct(int id);
 
 public:
