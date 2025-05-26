@@ -32,6 +32,7 @@ public:
     Products *labProducts;
     Inventory *labInventoryOperations;
     Patients *labPatients;
+    LabTests *labTests;
 
     sqlite3 *db;
     Laboratory(string labName = "", string labRif = "", string labPlace = "");
